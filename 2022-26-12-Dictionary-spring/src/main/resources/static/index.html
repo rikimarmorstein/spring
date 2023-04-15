@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Dictionary.com</h1>
+    <fieldset>
+        <legend>Add Entry</legend>
+        <input id="word" type="text" placeholder="word">
+        <br>
+        <input id="definition" type="text" placeholder="definition">
+        <br>
+        <input id="example" type="text" placeholder="example">
+        <br>
+        <button onclick="addEntry(word.value, definition.value, example.value)">Add</button>
+    </fieldset>
+    <fieldset>
+        <legend>Response from server</legend>
+        <div id="response"></div>
+    </fieldset>
+    <script>
+        function addEntry(word, definition, example){
+            let theExample = new Example(0, example);
+            let entry = new Entry(0,word, definition,theExample );
+            let entryAsJson = JSON.stringify(entry);//transfrom the js object to json
+                     //send a request to the server
+          //  let url='http://localhost:8080/api/dictionary';
+         	 let url='/api/dictionary';
+            
+            let xhttp = new XMLHttpRequest();
+            xhttp.open('POST', url);//define the request
+            xhttp.onload = function(){
+                //get the response as JSON
+                let responseAsJSON = this.response;
+                //parse - transform from json to js object
+                let responseAsObject = JSON.parse(responseAsJSON);
+                //create  an entry object - so we can its tostring mathod
+                let example = new Example(responseAsObject.sentences[0].id, responseAsObject.sentences[0].example);
+                let entry = new Entry(responseAsObject.id, responseAsObject.word, responseAsObject.definition, example);
+                document.getElementById("response").innerHTML = entry;
+            }
+            //send the request
+            xhttp.setRequestHeader("content-Type", "application/json");
+            xhttp.send(entryAsJson);
+        }
+        class Entry{
+            constructor(id, word, definition, ...sentences){
+                this.id=id;
+                this.word=word;
+                this.definition=definition;
+                this.sentences=sentences;
+            }
+            toString(){
+                return "entry[id: "+ this.id+ ", word: " +this.word+", definition: "+this.definition+", sentences: "+this.sentences +"]";
+            }
+        }
+        class Example{
+            constructor(id, example){
+                this.id=id;
+                this.example=example;
+            }
+            toString(){
+                return "Example[id: "+ this.id+ ", example: " +this.example+"]";
+            }
+        }
+
+        // let entry = new Entry(0,'aaa', 'def', 'ex1', 'ex2', 'ex3');
+    // console.log(entry);
+    </script>
+</body>
+</html>
